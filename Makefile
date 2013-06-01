@@ -5,3 +5,5 @@ Toggle_FILES = Toggle.mm
 Toggle_INSTALL_PATH = /var/mobile/Library/SBSettings/Toggles/SBCecrecy
 
 include $(THEOS_MAKE_PATH)/library.mk
+SUBPROJECTS += sbcecrecysettings
+include $(THEOS_MAKE_PATH)/aggregate.mk

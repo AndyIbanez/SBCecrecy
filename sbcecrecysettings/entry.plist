@@ -1,0 +1,10 @@
+{
+	entry = {
+		bundle = SBCecrecySettings;
+		cell = PSLinkCell;
+		detail = "SBCecrecySettingsListController";
+		icon = "SBCecrecySettings.png";
+		isController = 1;
+		label = SBCecrecy;
+	};
+}
