@@ -7,15 +7,74 @@
 //All the code to create the UI of the toggle itself was fetched and modified from BigBoss' Brightness Toggle source code.
 //------------------------------------------------------------------------------------------------------------------------
 
+// Required
+extern "C" BOOL isCapable() {
+	return YES;
+}
+
+// Required
+extern "C" BOOL isEnabled() {
+	NSMutableDictionary *enabledDir = [[NSMutableDictionary dictionaryWithContentsOfFile: 
+								[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.SBCecrecyEnabled.plist"]] retain];
+	BOOL valToReturn;
+	if(enabledDir == nil)
+	{
+		valToReturn = NO;
+	}else	
+	{
+		valToReturn = [[enabledDir objectForKey:@"toggleEnabled"] boolValue];
+	}
+	return valToReturn;
+}
+
+// Optional
+// Faster isEnabled. Remove this if it's not necessary. Keep it if isEnabled() is expensive and you can make it faster here.
+extern "C" BOOL getStateFast() {
+	return isEnabled();
+}
+
+extern "C" NSString *getPasscode()
+{
+	NSDictionary *passcodeString = [NSMutableDictionary dictionaryWithContentsOfFile: 
+								[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.PasscodeString.plist"]];
+	return [passcodeString objectForKey:@"passcodeString"];
+}
+
+extern "C" void hideIcons()
+{
+	system("killall -9 SpringBoard");
+}
+
+extern "C" void showIcons()
+{
+	system("killall -9 SpringBoard");
+}
+
+extern "C" BOOL passcodeEnabled()
+{
+	NSDictionary *passcodeEnabled = [NSMutableDictionary dictionaryWithContentsOfFile: 
+								[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.sbcecrecysettings.plist"]];
+	NSDictionary *passcodeString = [NSMutableDictionary dictionaryWithContentsOfFile: 
+								[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.PasscodeString.plist"]];
+	if(passcodeEnabled == nil || passcodeString == nil)
+	{
+		return NO;
+	}else
+	{
+		return [[passcodeEnabled objectForKey:@"usePasscode"] boolValue];
+	}
+}
+
 @interface PasscodeView : UIView
 {
 	UITextField *passcodeField;
 	UIButton *okBtn;
 	BOOL enabled;
+	NSMutableDictionary *enabledDir;
 }
 @property (nonatomic, assign) BOOL enabled;
 
-- (PasscodeView *) initWindow;
+- (PasscodeView *) initWindowAndEnabled:(BOOL)enable;
 - (void) transitionOut;
 - (void) transitionIn;
 - (void) CloseButtonPressed; 
@@ -26,7 +85,7 @@
 
 @implementation PasscodeView
 @synthesize enabled;
-- (PasscodeView *) initWindow
+- (PasscodeView *) initWindowAndEnabled:(BOOL)enable
 {
 	//ValueChanged = NO;
 	self = [super initWithFrame:CGRectMake(-274.0f, 40.0f, 274.0f, 71.0f)];
@@ -48,14 +107,6 @@
 	Image.image = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"%@/Library/SBSettings/Themes/%@/SliderFrame.png", NSHomeDirectory(), CurrentTheme]];
 	[self addSubview: Image];
 	[Image release];
-	
-	// Setup the label
-	/*UILabel* Label = [[UILabel alloc] initWithFrame:CGRectMake(100.0f, 15.0f, 100.0f, 20.0f)]; 
-	[Label setText:@"Cecrecy"];
-	[Label setTextColor:[UIColor whiteColor]];
-	[Label setBackgroundColor: [UIColor clearColor]];
-	[self addSubview: Label];
-	[Label release];*/
 	
 	// Setup the passcode field.
 	passcodeField = [[UITextField alloc] initWithFrame:CGRectMake(15, 30, 180, 31)];
@@ -80,6 +131,19 @@
 	[CloseButton addTarget:self action:@selector(CloseButtonPressed) forControlEvents:UIControlEventTouchUpInside];
 	[self addSubview: CloseButton];
 	[CloseButton release];
+	
+	//Save the state of the toggle. In my tutorial, I wrote that your SBSettings toggle shouldn't have to keep track of itself. Now you know rules sometimes are to be broken!
+	//Remember: If the toggle is currently ON, enabled will be NO, telling us it wants to turn it off.
+	enabledDir = [[NSMutableDictionary dictionaryWithContentsOfFile: 
+								[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.SBCecrecyEnabled.plist"]] retain];
+	if(enabledDir == nil)
+	{
+		enabledDir = [NSMutableDictionary dictionary];
+	}
+	[enabledDir setObject:[NSNumber numberWithBool:enable] forKey:@"toggleEnabled"];
+	//[enabledDir writeToFile:[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.SBCecrecyEnabled.plist"] atomically:YES];
+	
+	enabled = enable;
 	
 	
 	return self;
@@ -193,28 +257,31 @@
 @end
 
 // Required
-extern "C" BOOL isCapable() {
-	return YES;
-}
-
-// Required
-extern "C" BOOL isEnabled() {
-	return YES;
-}
-
-// Optional
-// Faster isEnabled. Remove this if it's not necessary. Keep it if isEnabled() is expensive and you can make it faster here.
-extern "C" BOOL getStateFast() {
-	return YES;
-}
-
-// Required
 extern "C" void setState(BOOL enabled) {
 	// Set State!
-	PasscodeView *pv = [[PasscodeView alloc] initWindow];
-	pv.enabled = enabled;
-	[pv transitionIn];
-	[pv release];
+	if(passcodeEnabled())
+	{
+		PasscodeView *pv = [[PasscodeView alloc] initWindowAndEnabled:enabled];
+		[pv transitionIn];
+		[pv release];
+	}else
+	{
+		NSMutableDictionary *enabledDir = [NSMutableDictionary dictionaryWithContentsOfFile: 
+								[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.SBCecrecyEnabled.plist"]];
+		if(enabledDir == nil)
+		{
+			enabledDir = [NSMutableDictionary dictionary];
+		}
+		[enabledDir setObject:[NSNumber numberWithBool:enabled] forKey:@"toggleEnabled"];
+		[enabledDir writeToFile:[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.SBCecrecyEnabled.plist"] atomically:YES];
+		if(enabled == NO)
+		{
+			showIcons();
+		}else
+		{
+			hideIcons();
+		}
+	}
 }
 
 // Required
