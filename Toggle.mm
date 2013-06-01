@@ -117,6 +117,7 @@ extern "C" BOOL passcodeEnabled()
 	okBtn = [[UIButton buttonWithType:UIButtonTypeRoundedRect] retain];
 	okBtn.frame = CGRectMake(198, 30, 60, 31);
 	[okBtn setTitle:@"OK" forState:UIControlStateNormal];
+	[okBtn addTarget:self action:@selector(passcodeInput) forControlEvents:UIControlEventTouchUpInside];
 	[self addSubview:okBtn];
 	
 	// Setup the close button
@@ -140,8 +141,6 @@ extern "C" BOOL passcodeEnabled()
 	{
 		enabledDir = [NSMutableDictionary dictionary];
 	}
-	[enabledDir setObject:[NSNumber numberWithBool:enable] forKey:@"toggleEnabled"];
-	//[enabledDir writeToFile:[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.SBCecrecyEnabled.plist"] atomically:YES];
 	
 	enabled = enable;
 	
@@ -190,6 +189,7 @@ extern "C" BOOL passcodeEnabled()
 	CGAffineTransform transformView	= CGAffineTransformMakeTranslation(297.0f, 0.0f);
 	[self setTransform: transformView];
 	[UIView commitAnimations];
+	[passcodeField becomeFirstResponder];
 }
 
 
@@ -253,6 +253,25 @@ extern "C" BOOL passcodeEnabled()
 
 -(void)passcodeInput
 {
+	if([getPasscode() isEqualToString:passcodeField.text])
+	{
+		[enabledDir setObject:[NSNumber numberWithBool:enabled] forKey:@"toggleEnabled"];
+		[enabledDir writeToFile:[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.SBCecrecyEnabled.plist"] atomically:YES];
+		if(enabled == NO)
+		{
+			showIcons();
+		}else
+		{
+			hideIcons();
+		}
+	}else
+	{
+		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Wrong Passcode" message:@"Incorrect password. Please try again." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+		[alert show];
+		[alert release];
+		passcodeField.text = @"";
+		[self transitionOut];
+	}
 }
 @end
 
