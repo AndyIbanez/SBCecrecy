@@ -251,7 +251,7 @@ extern "C" BOOL passcodeEnabled()
 {
 	[passcodeField release];
 	[okBtn release];
-	[
+	[enabledDir release];
 	[self removeFromSuperview];
 }
 
