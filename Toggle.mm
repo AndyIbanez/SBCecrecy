@@ -175,7 +175,7 @@ extern "C" BOOL passcodeEnabled()
 								[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.SBCecrecyEnabled.plist"]] retain];
 	if(enabledDir == nil)
 	{
-		enabledDir = [NSMutableDictionary dictionary];
+		enabledDir = [[NSMutableDictionary dictionary] retain];
 	}
 	
 	enabled = enable;
