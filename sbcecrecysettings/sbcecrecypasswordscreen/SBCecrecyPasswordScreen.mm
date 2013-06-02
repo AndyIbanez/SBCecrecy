@@ -80,7 +80,7 @@
 	{
 		//Everything went fine! Save the passcode.
 		//We know we got here because the dictionary was nil to begin with...
-		passcodeDic = [NSMutableDictionary dictionary];
+		passcodeDic = [[NSMutableDictionary dictionary] retain];
 		[passcodeDic setObject:repeatPasscode.text forKey:@"passcodeString"];
 		[passcodeDic writeToFile:[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.PasscodeString.plist"] atomically:YES];
 		[setPasscode setTitle:@"Change Passcode" forState:UIControlStateNormal];

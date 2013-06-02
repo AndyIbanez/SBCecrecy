@@ -1,9 +1,0 @@
-Package: com.andyibanez.sbcecrecy
-Name: SBCecrecy
-Depends: sbsettings
-Version: 1.0.0
-Architecture: iphoneos-arm
-Description: An SBSettings toggle for Cecrecy.
-Maintainer: Andy Ibanez
-Author: Andy Ibanez
-Section: Addons (SBSettings)
