@@ -1,11 +1,13 @@
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//All the code to create the UI of the toggle itself was taken and modified from BigBoss' Brightness Toggle source code. Anything else is "original".
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+
 #import <CoreFoundation/CoreFoundation.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-//------------------------------------------------------------------------------------------------------------------------
-//All the code to create the UI of the toggle itself was fetched and modified from BigBoss' Brightness Toggle source code.
-//------------------------------------------------------------------------------------------------------------------------
+static NSBundle *cecret = nil;
 
 // Required
 extern "C" BOOL isCapable() {
@@ -42,11 +44,41 @@ extern "C" NSString *getPasscode()
 
 extern "C" void hideIcons()
 {
+	if(cecret == NULL)
+	{
+		cecret = [[NSBundle alloc] initWithPath:@"/Library/Cecrecy/Cecrecy.bundle"];
+	}
+	
+	Class cecretClass;
+	id cecretBin;
+	if((cecretClass = [cecret principalClass]))
+	{
+		cecretBin = [[cecretClass alloc] init];
+	}
+	
+	[cecretBin performSelector:@selector(hideIcons)];
+	[cecretBin release];
+	[cecret release];
 	system("killall -9 SpringBoard");
 }
 
 extern "C" void showIcons()
 {
+	if(cecret == NULL)
+	{
+		cecret = [[NSBundle alloc] initWithPath:@"/Library/Cecrecy/Cecrecy.bundle"];
+	}
+	
+	Class cecretClass;
+	id cecretBin;
+	if((cecretClass = [cecret principalClass]))
+	{
+		cecretBin = [[cecretClass alloc] init];
+	}
+	
+	[cecretBin performSelector:@selector(showIcons)];
+	[cecretBin release];
+	[cecret release];
 	system("killall -9 SpringBoard");
 }
 
@@ -65,7 +97,7 @@ extern "C" BOOL passcodeEnabled()
 	}
 }
 
-@interface PasscodeView : UIView
+@interface PasscodeView : UIView <UIAlertViewDelegate>
 {
 	UITextField *passcodeField;
 	UIButton *okBtn;
@@ -112,6 +144,7 @@ extern "C" BOOL passcodeEnabled()
 	passcodeField = [[UITextField alloc] initWithFrame:CGRectMake(15, 30, 180, 31)];
 	passcodeField.borderStyle = UITextBorderStyleRoundedRect;
 	passcodeField.placeholder = @"Your Passcode";
+	passcodeField.secureTextEntry = YES;
 	[self addSubview:passcodeField];
 	
 	okBtn = [[UIButton buttonWithType:UIButtonTypeRoundedRect] retain];
@@ -223,31 +256,6 @@ extern "C" BOOL passcodeEnabled()
 //************************************************************************************************************
 - (void) CloseButtonPressed 
 {
-	/*NSLog(@"Value changed = %D\n", ValueChanged);
-	if(ValueChanged == YES)
-	{
-		NSMutableDictionary* Prefs = [NSMutableDictionary dictionaryWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist"];
-
-		if(Prefs != nil)
-		{
-			NSLog(@"Prefs != nil\n");
-			float CurrentBacklight1 = [[Prefs objectForKey:@"SBBacklightLevel"] floatValue];
-			float CurrentBacklight2 = [[Prefs objectForKey:@"SBBacklightLevel2"] floatValue];
-			NSNumber* Number = [NSNumber numberWithFloat:CurrentBacklight];
-			
-			if(CurrentBacklight2 > 0)
-			{
-				NSLog(@"CurrentBacklight2 = %f\n", CurrentBacklight2);
-				[Prefs setObject:Number forKey:@"SBBacklightLevel2"];
-			}
-			if(CurrentBacklight1 > 0)
-			{
-				NSLog(@"CurrentBacklight1 = %f\n", CurrentBacklight1);
-				[Prefs setObject:Number forKey:@"SBBacklightLevel"];
-			}
-			[Prefs writeToFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist" atomically:YES];
-		}
-	}*/
 	[self transitionOut];
 }
 
@@ -257,13 +265,9 @@ extern "C" BOOL passcodeEnabled()
 	{
 		[enabledDir setObject:[NSNumber numberWithBool:enabled] forKey:@"toggleEnabled"];
 		[enabledDir writeToFile:[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.SBCecrecyEnabled.plist"] atomically:YES];
-		if(enabled == NO)
-		{
-			showIcons();
-		}else
-		{
-			hideIcons();
-		}
+		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Respring Required." message:@"Your phone will now respring to toggle your icons." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+		[alert show];
+		[alert release];
 	}else
 	{
 		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Wrong Passcode" message:@"Incorrect password. Please try again." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
@@ -271,6 +275,21 @@ extern "C" BOOL passcodeEnabled()
 		[alert release];
 		passcodeField.text = @"";
 		[self transitionOut];
+	}
+}
+
+//UIAlertView delegate methods.
+- (void)alertView:(UIAlertView *)alertView willDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+	if([alertView.title isEqualToString:@"Respring Required."])
+	{
+		if(enabled == NO)
+		{
+			showIcons();
+		}else
+		{
+			hideIcons();
+		}
 	}
 }
 @end
