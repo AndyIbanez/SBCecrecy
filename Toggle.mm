@@ -21,6 +21,9 @@ extern "C" BOOL isEnabled() {
 	BOOL valToReturn;
 	if(enabledDir == nil)
 	{
+		enabledDir = [[NSMutableDictionary alloc] init];
+		[enabledDir setObject:[NSNumber numberWithBool:NO] forKey:@"toggleEnabled"];
+		[enabledDir writeToFile:[NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"com.andyibanez.Cecrecy.SBCecrecyEnabled.plist"] atomically:YES];
 		valToReturn = NO;
 	}else	
 	{
@@ -248,6 +251,7 @@ extern "C" BOOL passcodeEnabled()
 {
 	[passcodeField release];
 	[okBtn release];
+	[
 	[self removeFromSuperview];
 }
 
